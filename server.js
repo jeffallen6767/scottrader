@@ -1,4 +1,5 @@
-var express = require('express'),
+var winston = require('winston'),
+  express = require('express'),
   path = require('path'),
   formidable = require('formidable'),
   fs = require('fs');
@@ -8,7 +9,14 @@ var port = 3333,
   app = express(),
   staticPath = path.join(dir, 'public'),
   indexPath = path.join(dir, 'views/index.html'),
-  uploadPath = path.join(dir, '/uploads');
+  uploadPath = path.join(dir, '/uploads'),
+  info = winston.info,
+  error = winston.error,
+  level = process.env.LOG_LEVEL;
+
+console.log('log level', level);
+
+winston.level = level;
 
 app.use(express.static(staticPath));
 
@@ -33,14 +41,23 @@ app.post('/upload', function(req, res){
   // every time a file has been uploaded successfully,
   // rename it to it's orignal name
   form.on('file', function(field, file) {
-    console.log('file', todo);
+    //console.log('file', todo);
+    info('file', {  
+      'todo': todo
+    });
     todo += 1;
     var fileName = path.join(form.uploadDir, file.name);
     fs.rename(file.path, fileName);
     fs.readFile(fileName, 'utf8', function(err, data) {  
-        console.log('fs.fileRead', todo);
+        //console.log('fs.fileRead', todo);
+        info('fs.fileRead', {  
+          'todo': todo
+        });
         if (err) throw err;
-        console.log(fileName, data);
+        //console.log(fileName, data);
+        info(fileName, {  
+          'data': data
+        });
         files[file.name] = data;
         todo -= 1;
     });
@@ -48,11 +65,15 @@ app.post('/upload', function(req, res){
 
   // log any errors that occur
   form.on('error', function(err) {
-    console.log('An error has occured: \n' + err);
+    //console.log('An error has occured: \n' + err);
+    error('An error has occured:', {  
+      'err': err
+    });
   });
 
   function finishedWithFiles() {
-    console.log("finishedWithFiles...");
+    //console.log("finishedWithFiles...");
+    info('finishedWithFiles...');
     res.send({
       'result': 'success',
       'files': files
@@ -60,8 +81,9 @@ app.post('/upload', function(req, res){
   }
 
   function checkForDone() {
-    console.log("checkForDone");
-      setTimeout(function() {
+    //console.log("checkForDone");
+    info('checkForDone...');
+    setTimeout(function() {
         if (!todo) {
           finishedWithFiles();
         } else {
@@ -79,5 +101,8 @@ app.post('/upload', function(req, res){
 });
 
 var server = app.listen(port, function(){
-  console.log('Server listening on port ' + port);
+  //console.log('Server listening on port ' + port);
+  info('Server listening on port', {  
+    'port': port
+  });
 });

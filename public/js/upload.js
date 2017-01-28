@@ -1,7 +1,9 @@
 
 // Check for the various File API support.
 var doItAllClientSide = (window.File && window.FileReader && window.FileList && window.Blob) ? true : false;
-doItAllClientSide = false;
+
+// to test server side on modern browser:
+//doItAllClientSide = false;
 
 console.log("doItAllClientSide");
 console.log(doItAllClientSide);
@@ -66,7 +68,7 @@ function ServerSideFileUpload(files) {
           var keys = Object.keys(files);
           keys.forEach(function(key) {
             var result = files[key];
-            parseCsv(result);
+            handleData(result);
           });
           
       },
@@ -83,7 +85,6 @@ function ServerSideFileUpload(files) {
   
 }
 
-
 function ClientSideFileUpload(files) {
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
@@ -99,18 +100,25 @@ function ClientSideFileUpload(files) {
       console.log(evt);
       updateProgress(evt);
       var result = evt.currentTarget.result;
-      parseCsv(result);
+      handleData(result);
     };
     reader.readAsText(file);
   }
 }
 
-function parseCsv(text) {
-  console.log('text');
-  console.log(text);
-  var results = Papa.parse(text, {
-    dynamicTyping: true
-  });
-  console.log('results of Papa.parse');
-  console.log(results);
+function handleData(text) {
+  var result = parseCsv(text),
+    meta = result.meta,
+    errs = result.errors,
+    data = result.data;
+
+  if (meta.aborted) {
+    console.log("parseCsv aborted...");
+    console.log(result);
+  } else if (errs.length) {
+    console.log("parseCsv errors...");
+    console.log(result);
+  } else {
+    initDisplay(data);
+  }
 }
