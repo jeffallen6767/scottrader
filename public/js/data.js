@@ -19,11 +19,12 @@ function indexData(data) {
   console.log("indexData", data);
 
   var keys = data[0],
-    numKeys = keys.length,
-    numData = data.length,
-    vals = [],
-    idx = {"keys":{},"calc":{}},
-    x,y,z;
+      numKeys = keys.length,
+      numData = data.length,
+      vals = [],
+      idx = {"keys":{},"calc":{}},
+      x,y,z,
+      result;
 
   // set-up index
   for (x=0; x<numKeys; x++) {
@@ -40,37 +41,39 @@ function indexData(data) {
     }
   }
 
-  return createIndexes(keys, vals, idx);
+  result = {
+    "keys": keys,
+    "vals": vals,
+    "idx": idx
+  };
+
+  return result;
 }
 
-function createIndexes(keys, vals, idx) {
+function getDividendData(data) {
 
-  console.log("indexByKeys", keys, vals, idx);
-
-  var numVals = vals.length,
-    idxKeys = idx.keys,
-    ACTION_IDX = idxKeys["ActionNameUS"],
-    SYMBOL_IDX = idxKeys["Symbol"],
-    AMOUNT_IDX = idxKeys["Amount"],
-
-    idxCalc = idx.calc,
-
-    dividendIdxs = [],
-    dividendSymbols = {}, 
-    dividendTotals = {}, 
-    dividendTotal = 0,
-
-    key, val, symbol, value,
-
-    x,y,z,
-
-    what;
+  console.log("getDividendData", data);
+  
+  var vals = data.vals,
+      idx = data.idx,
+      numVals = vals.length,
+      idxKeys = idx.keys,
+      ACTION_IDX = idxKeys["ActionNameUS"],
+      SYMBOL_IDX = idxKeys["Symbol"],
+      AMOUNT_IDX = idxKeys["Amount"],
+      dividendIdxs = [],
+      dividendSymbols = {}, 
+      dividendTotals = {}, 
+      dividendTotal = 0,
+      val, symbol, value, x;
 
   // calc dividends
   for (x=0; x<numVals; x++) {
     val = vals[x];
     if (val[ACTION_IDX] === "Dividend") {
+      // save idx
       dividendIdxs.push(x);
+      // get col vals
       symbol = val[SYMBOL_IDX];
       value = val[AMOUNT_IDX];
       // init if necessary
@@ -83,16 +86,14 @@ function createIndexes(keys, vals, idx) {
       dividendTotal = addReal(dividendTotal, value);
     }
   }
-  idxCalc["dividends"] = {
+
+  // modify data
+  data.idx.calc["dividends"] = {
     "idxs": dividendIdxs,
     "symbols": dividendSymbols,
     "totals": dividendTotals,
     "total": dividendTotal
   };
 
-  return {
-    "keys": keys,
-    "vals": vals,
-    "idx": idx
-  };
+  return data;
 }
