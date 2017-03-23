@@ -97,3 +97,4 @@ function getDividendData(data) {
 
   return data;
 }
+
