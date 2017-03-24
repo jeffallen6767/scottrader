@@ -1,26 +1,32 @@
-/*
-	<button class="btn btn-lg upload-btn" type="button">Upload File</button>
-	$('<button class="btn btn-lg upload-btn" type="button">calc</button>').click(function() {
-		show(data);
-	})
-*/
+// display.js - (c) 2017 Jeffrey David Allen
+
+function domReplace(jqEl, jqContent) {
+	return jqEl.empty().append(jqContent);
+}
 
 function initDisplay(data) {
+	console.log("initDisplay", data);
 	var indexedData = data.idx ? data : indexData(data);
-	$('div#content').replaceWith(
-		getMenu({
-			"Dividends": "showDividends"
-		}, indexedData)
-	);
 	$('div.container').css({
 		'width': '100%'
-	})
+	});
+	domReplace(
+		$('div#content'), 
+		getMenu({
+			"- Select -": "",
+			"All Info": "All",
+			"Dividends": "Dividend"
+		}, indexedData)
+	);
 }
 
 function getMenu(meta, data) {
+
+	console.log("getMenu", meta, data);
+
 	var keys = Object.keys(meta),
 		numKeys = keys.length,
-		menu = $('<select id="menu"><option value="">-- select --</option></select>'),
+		menu = $('<select id="menu"></select>'),
 		key,
 		x;
 
@@ -33,37 +39,54 @@ function getMenu(meta, data) {
 	}
 
 	menu.change(function(evt) {
-		console.log("menu.change", evt);
+		//console.log("menu.change", evt);
 		var val = menu.val(),
-			handler = window[meta[val]] || initDisplay;
-		console.log("menu val", val);
-		handler(data);
+			type = meta[val];
+		//console.log("menu val", val, type);
+		show(type, data);
 	});
 
 	return menu;
 }
 
-function showDividends(data) {
-	if (!data.idx.calc["dividends"]) {
-		data = getDividendData(data);
+function show(type, data) {
+	console.log("show", type, data);
+	if (type === "") {
+		domReplace(
+			$('div#data'),
+			$('<div></div>')
+		);
+	} else {
+		if (!data.idx.calc[type]) {
+			data = getCalc(type, data);
+		}
+		var table = showDataTable(type, data);
+		domReplace(
+			$('div#data'),
+			table
+		);
+		table.DataTable();
 	}
-	var dat = $('div#data'),
-		table = '<table id="dividends" class="display compact" cellspacing="0" width="100%">',
+}
+
+function showDataTable(type, data) {
+	
+	console.log("showDataTable", type, data);
+
+	var table = '<table class="display compact" cellspacing="0" width="100%">',
 		thead = '<thead><tr>',
 		tfoot = '<tfoot><tr>',
 		tbody = '<tbody>',
-		keys = ['TradeDate','Symbol', 'Amount', 'Description'],
+		
 		vals = data.vals,
-		numKeys = keys.length,
-		div = data.idx.calc.dividends,
+		div = data.idx.calc[type],
 		idxs = div.idxs,
+		keys = div.keys,
+		numKeys = keys.length,
 		idxKeys = data.idx.keys,
 		numIdxs = idxs.length,
 
-		val,
-		idx,
-		key,
-		x,y;
+		val, idx, key, x, y;
 
 	// head/foot
 	for (x=0; x<numKeys; x++) {
@@ -87,6 +110,7 @@ function showDividends(data) {
 	}
 	tbody = $(tbody + '</tbody>');
 	table = $(table).append(thead,tfoot,tbody);
-	dat.replaceWith(table);
-	table.DataTable();
+	
+	return table;
 }
+

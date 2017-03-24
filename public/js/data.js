@@ -1,3 +1,5 @@
+// data.js - (c) 2017 Jeffrey David Allen
+
 // avoid problems like: 0.01 + 0.06  //0.06999999999999999
 function addReal(a, b) {
   return Math.round((a + b) * 1e12) / 1e12;
@@ -13,6 +15,12 @@ function parseCsv(text) {
   console.log(results);
   return results;
 }
+
+var meta = {
+  "Dividend": {
+    "keys": ['TradeDate','Symbol', 'Amount', 'Description']
+  }
+};
 
 function indexData(data) {
 
@@ -50,49 +58,67 @@ function indexData(data) {
   return result;
 }
 
-function getDividendData(data) {
+function getCalc(type, data) {
 
-  console.log("getDividendData", data);
+  console.log("getCalc", type, data);
   
   var vals = data.vals,
       idx = data.idx,
       numVals = vals.length,
       idxKeys = idx.keys,
-      ACTION_IDX = idxKeys["ActionNameUS"],
+      
       SYMBOL_IDX = idxKeys["Symbol"],
+      ACTION_IDX = idxKeys["ActionNameUS"],
       AMOUNT_IDX = idxKeys["Amount"],
-      dividendIdxs = [],
-      dividendSymbols = {}, 
-      dividendTotals = {}, 
-      dividendTotal = 0,
-      val, symbol, value, x;
 
-  // calc dividends
+      idxs = [],
+      symbols = {},
+      actions = {}, 
+      amounts = {},
+
+      keys = (meta[type] || data).keys,
+
+      total = 0,
+
+      val, symbol, action, amount, x;
+
   for (x=0; x<numVals; x++) {
+    // row
     val = vals[x];
-    if (val[ACTION_IDX] === "Dividend") {
+    //console.log("val", val);
+    action = val[ACTION_IDX];
+    //console.log("action", action);
+    if (type === "All" || type === action) {
       // save idx
-      dividendIdxs.push(x);
+      idxs.push(x);
       // get col vals
       symbol = val[SYMBOL_IDX];
-      value = val[AMOUNT_IDX];
-      // init if necessary
-      dividendSymbols[symbol] = dividendSymbols[symbol] || {"idxs":[],"vals":[]};
-      dividendSymbols[symbol].idxs.push(x);
-      dividendSymbols[symbol].vals.push(value);
-      // init if necessary
-      dividendTotals[symbol] = dividendTotals[symbol] || 0;
-      dividendTotals[symbol] = addReal(dividendTotals[symbol], value);
-      dividendTotal = addReal(dividendTotal, value);
+      amount = val[AMOUNT_IDX];
+      if (type === "All") {
+        // init if necessary
+        actions[action] = actions[action] || {"idxs":[]};
+        actions[action].idxs.push(x);
+
+      }
+      // symbol
+      symbols[symbol] = symbols[symbol] || {"idxs":[]};
+      symbols[symbol].idxs.push(x);
+      // amount by symbol
+      amounts[symbol] = amounts[symbol] || 0;
+      amounts[symbol] = addReal(amounts[symbol], amount);
+      // total
+      total = addReal(total, amount);
     }
   }
 
   // modify data
-  data.idx.calc["dividends"] = {
-    "idxs": dividendIdxs,
-    "symbols": dividendSymbols,
-    "totals": dividendTotals,
-    "total": dividendTotal
+  data.idx.calc[type] = {
+    "idxs": idxs,
+    "keys": keys,
+    "symbols": symbols,
+    "actions": actions,
+    "amounts": amounts,
+    "_total": total
   };
 
   return data;
