@@ -17,6 +17,9 @@ function parseCsv(text) {
 }
 
 var meta = {
+  "All": {
+    "keys": ['TradeDate','Symbol', 'ActionNameUS', 'Quantity', 'Price', 'Commission', 'Fees', 'Amount', 'Description']
+  },
   "Dividend": {
     "keys": ['TradeDate','Symbol', 'Amount', 'Description']
   }

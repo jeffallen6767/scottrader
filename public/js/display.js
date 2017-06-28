@@ -1,5 +1,22 @@
 // display.js - (c) 2017 Jeffrey David Allen
 
+var cssMods = {
+	"Quantity": "pad-right",
+	"Price": "pad-right",
+	"Commission": "pad-right",
+	"Fees": "pad-right",
+	"Amount": "pad-right"
+};
+
+var dataTableOptions = {
+	"All": {
+		"order": [[ 0, "desc" ]]
+	},
+	"Dividend": {
+		"order": [[ 0, "desc" ]]
+	}
+};
+
 function domReplace(jqEl, jqContent) {
 	return jqEl.empty().append(jqContent);
 }
@@ -75,8 +92,15 @@ function show(type, data) {
 			$('div#data'),
 			table
 		);
-		table.DataTable();
+		table.DataTable(
+			dataTableOptions[type]
+		);
 	}
+}
+
+function getMod(key) {
+	var mod = cssMods[key];
+	return mod ? ' class="' + mod + '"' : '';
 }
 
 function showDataTable(type, data) {
@@ -114,7 +138,7 @@ function showDataTable(type, data) {
 		tbody += '<tr>';
 		for (y=0; y<numKeys; y++) {
 			key = keys[y];
-			tbody += '<td>' + val[idxKeys[key]] + '</td>';
+			tbody += '<td' + getMod(key) + '>' + val[idxKeys[key]] + '</td>';
 		}
 		tbody += '</tr>';
 	}
