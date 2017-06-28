@@ -4,8 +4,18 @@ function domReplace(jqEl, jqContent) {
 	return jqEl.empty().append(jqContent);
 }
 
+function initDatePlugin() {
+	var dateType = 'M/D/YYYY';
+	if (!$.fn.dataTable.initDatePlugin) {
+		console.log("initDatePlugin", dateType);
+		$.fn.dataTable.moment(dateType);
+		$.fn.dataTable.initDatePlugin = dateType;
+	}
+}
+
 function initDisplay(data) {
 	console.log("initDisplay", data);
+	initDatePlugin();
 	var indexedData = data.idx ? data : indexData(data);
 	$('div.container').css({
 		'width': '100%'

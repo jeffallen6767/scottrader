@@ -30,8 +30,9 @@ function indexData(data) {
       numKeys = keys.length,
       numData = data.length,
       vals = [],
+      objs = [],
       idx = {"keys":{},"calc":{}},
-      x,y,z,
+      v,w,x,y,z,
       result;
 
   // set-up index
@@ -46,12 +47,20 @@ function indexData(data) {
     if (z.length === numKeys) {
       // save copy
       vals.push(z);
+      w = {};
+      for (v=0; v<numKeys; v++) {
+        w[keys[v]] = z[v];
+      }
+      objs.push(w);
+    } else {
+      console.log("!!! indexData BAD DATA LENGTH idx[", y, "] is ", z.length, " should be ", numKeys);
     }
   }
 
   result = {
     "keys": keys,
     "vals": vals,
+    "objs": objs,
     "idx": idx
   };
 
