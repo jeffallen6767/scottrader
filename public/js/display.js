@@ -10,7 +10,11 @@ var cssMods = {
 
 var dataTableOptions = {
 	"All": {
-		"order": [[ 0, "desc" ]]
+		"order": [[ 0, "desc" ]],
+		"columnDefs": [ {
+			targets: 8,
+			render: $.fn.dataTable.render.ellipsis( 60, true )
+		} ]
 	},
 	"Dividend": {
 		"order": [[ 0, "desc" ]]

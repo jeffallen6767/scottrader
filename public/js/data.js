@@ -55,6 +55,8 @@ function indexData(data) {
         w[keys[v]] = z[v];
       }
       objs.push(w);
+    } else if (z.length === 1 && z[0] === '') {
+      // noop, papa parse, end of data
     } else {
       console.log("!!! indexData BAD DATA LENGTH idx[", y, "] is ", z.length, " should be ", numKeys);
     }
