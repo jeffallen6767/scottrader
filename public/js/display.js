@@ -37,21 +37,28 @@ function initDatePlugin() {
 function initDisplay(data) {
 	console.log("initDisplay", data);
 	initDatePlugin();
+	showMenu(data);
+}
+
+function showMenu(data) {
 	var indexedData = data.idx ? data : indexData(data);
 	$('div.container').css({
 		'width': '100%'
 	});
 	domReplace(
-		$('div#content'), 
-		getMenu({
-			"- Select -": "",
-			"All Info": "All",
-			"Dividends": "Dividend"
-		}, indexedData)
+		$('div#content'), [
+			getMenu({
+				"- Select View -": "",
+				"Data View": "Data",
+				"Chart View": "Chart"
+			}, indexedData, viewSelected),
+			$('<div class="vertical-spacer"></div>'),
+			$('<div id="view-sub-menu"></div>')
+		]
 	);
 }
 
-function getMenu(meta, data) {
+function getMenu(meta, data, next) {
 
 	console.log("getMenu", meta, data);
 
@@ -70,39 +77,88 @@ function getMenu(meta, data) {
 	}
 
 	menu.change(function(evt) {
-		//console.log("menu.change", evt);
 		var val = menu.val(),
 			type = meta[val];
-		//console.log("menu val", val, type);
-		show(type, data);
+		next(type, data);
 	});
 
 	return menu;
 }
 
-function show(type, data) {
-	console.log("show", type, data);
-	if (type === "") {
-		domReplace(
-			$('div#data'),
-			$('<div></div>')
-		);
-	} else {
-		if (!data.idx.calc[type]) {
-			data = getCalc(type, data);
-		}
-		var table = showDataTable(type, data);
-		domReplace(
-			$('div#data'),
-			table
-		);
-		table.DataTable(
-			dataTableOptions[type]
-		);
+function viewSelected(type, data) {
+	console.log("viewSelected", type, data);
+	domReplace(
+		$('div#data'),
+		$('<div></div>')
+	);
+	switch (type) {
+		case "":
+			domReplace(
+				$('div#view-sub-menu'),
+				$('<div></div>')
+			);
+			break;
+		case "Data":
+			domReplace(
+				$('div#view-sub-menu'), [
+					getMenu({
+						"- Select Data View -": "",
+						"All Info": "All",
+						"Dividends": "Dividend"
+					}, data, showData)
+				]
+			);
+			break;
+		case "Chart":
+			domReplace(
+				$('div#view-sub-menu'), [
+					getMenu({
+						"- Select Chart View -": "",
+						"All Info": "All",
+						"Dividends": "Dividend"
+					}, data, showChart)
+				]
+			);
+			break;
+		default:
+			console.log("ERROR: Unknown view selected", type, data);
+			break;
 	}
 }
 
-function getMod(key) {
+function showData(type, data) {
+	console.log("showData", type, data);
+	if (!data.idx.calc[type]) {
+		data = getCalc(type, data);
+	}
+	var table = showDataTable(type, data);
+	domReplace(
+		$('div#data'),
+		table
+	);
+	table.DataTable(
+		dataTableOptions[type]
+	);
+}
+
+function showChart(type, data) {
+	console.log("showChart", type, data);
+	if (!data.idx.calc[type]) {
+		data = getCalc(type, data);
+	}
+	/*
+	var table = showDataTable(type, data);
+	domReplace(
+		$('div#data'),
+		table
+	);
+	table.DataTable(
+		dataTableOptions[type]
+	);
+	*/
+}
+
+function getCssMod(key) {
 	var mod = cssMods[key];
 	return mod ? ' class="' + mod + '"' : '';
 }
@@ -124,7 +180,7 @@ function showDataTable(type, data) {
 		idxKeys = data.idx.keys,
 		numIdxs = idxs.length,
 
-		val, idx, key, x, y;
+		val, idx, key, v, w, x, y, z;
 
 	// head/foot
 	for (x=0; x<numKeys; x++) {
@@ -142,7 +198,10 @@ function showDataTable(type, data) {
 		tbody += '<tr>';
 		for (y=0; y<numKeys; y++) {
 			key = keys[y];
-			tbody += '<td' + getMod(key) + '>' + val[idxKeys[key]] + '</td>';
+			w = getCssMod(key);
+			z = idxKeys[key];
+			v = val[z];
+			tbody += '<td' + w + '>' + v + '</td>';
 		}
 		tbody += '</tr>';
 	}
